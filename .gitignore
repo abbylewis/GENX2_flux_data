@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.httr-oauth
+tokenfile.RDS
+figures
+tokenfile.RDS.base64
+.Rapp.history
