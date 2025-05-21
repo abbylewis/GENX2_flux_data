@@ -40,7 +40,10 @@ calculate_flux <- function(start_date = NULL,
     return(read_csv(here::here("processed_data","L0.csv"), show_col_types = F))
   }
   
-  exclude <- c("EXCLUDED_FILE_NAME") #Insert file names here if they should be excluded
+  exclude <- c("/Users/abigaillewis/Desktop/SERC/GENX2_flux_data/Raw_data/dropbox_downloads/GENX2_Instrument_FLUX_COMB.dat.1.backup",
+  "/Users/abigaillewis/Desktop/SERC/GENX2_flux_data/Raw_data/dropbox_downloads/GENX2_Instrument_FLUX_COMB.dat.backup") 
+  #Insert file names here if they should be excluded
+  #Currently excluding last year's data
   files <- files[!grepl(paste0(exclude, collapse = "|"), files)]
   message(paste0("Calculating fluxes for ", length(files), " files"))
   
@@ -50,7 +53,8 @@ calculate_flux <- function(start_date = NULL,
     bind_rows()  %>%
     filter(!TIMESTAMP == "TS") %>%
     mutate(TIMESTAMP = as_datetime(TIMESTAMP, tz = "EST")) %>%
-    filter(!is.na(TIMESTAMP)) %>%
+    filter(!is.na(TIMESTAMP),
+           !MIU_VALVE %in% c(0,128)) %>%
     distinct()
   
   #Format data
@@ -105,6 +109,17 @@ calculate_flux <- function(start_date = NULL,
                           change_s[which.min(CH4d_ppm)],
                           NA),)
   
+  #grouped_data %>%
+  #  ungroup() %>%
+  #  filter(as.Date(TIMESTAMP)==Sys.Date()-1,
+  #         hour(TIMESTAMP) > 21,
+  #         hour(TIMESTAMP) < 24) %>%
+  #  ggplot(aes(x = TIMESTAMP, y= CO2d_ppm, color = Flux_Status))+
+  #  #geom_point(aes(group = group))+
+  #  geom_smooth(aes(group= paste0(group, Flux_Status)))
+  #
+  #unique(grouped_data$MIU_VALVE)
+  
   #Save flags for data that will be removed in the next step
   flags <- grouped_data %>%
     ungroup() %>%
@@ -126,8 +141,23 @@ calculate_flux <- function(start_date = NULL,
               #n_removed = unique(n),
               .groups = "drop") 
   
+  #Filter
+  start_cutoff <- 200 #Buffer of time after flux window
+  end_cutoff <- 540
+  filtered_data <- grouped_data %>%
+    group_by(group, MIU_VALVE)  %>%
+    mutate(n = sum(Manifold_Timer >= start_cutoff &
+                     Manifold_Timer <= end_cutoff),
+           cutoff = NA) %>%
+    #Remove earlier measurements
+    filter(Manifold_Timer >= start_cutoff,
+           Manifold_Timer <= end_cutoff,
+           max(change_s) < 1000, #After ~15 min there is probably a problem
+           n < 200 #probably some issue if this many measurements are taken
+    ) 
+  
   #Run lm
-  slopes <- grouped_data %>%
+  slopes <- filtered_data %>%
     pivot_longer(c(CH4d_ppm, CO2d_ppm, N2Od_ppb), names_to = "gas", values_to = "conc") %>%
     group_by(gas, group, MIU_VALVE, date) %>%
     mutate(n = sum(!is.na(conc))) %>%

@@ -14,8 +14,8 @@ Load and format data
 
 ```{r}
 days_to_plot <- 5
-#today <- Sys.Date()
-today <- as.Date("2024-08-26")
+today <- Sys.Date()
+#today <- as.Date("2025-05-21")
 slopes_l0 <- read_csv(here::here("processed_data", "L0.csv"), 
                       show_col_types = F) 
 
@@ -23,10 +23,6 @@ slopes_recent <- slopes_l0 %>%
   filter(as.Date(TIMESTAMP) <= today,
          TIMESTAMP > (today - days(days_to_plot))) %>% 
   rename(chamber = MIU_VALVE) %>%
-  mutate(CH4_slope_ppm_per_day = ifelse(CH4_slope_ppm_per_day > 20 & 
-                                          CH4_R2 < 0.9,
-                                        NA, 
-                                        CH4_slope_ppm_per_day)) %>%
   pivot_longer(matches("CH4_|N2O_|CO2_"), 
                names_to = c("gas", ".value"), 
                names_sep="_" ) %>%
