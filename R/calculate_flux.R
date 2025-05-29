@@ -40,8 +40,8 @@ calculate_flux <- function(start_date = NULL,
     return(read_csv(here::here("processed_data","L0.csv"), show_col_types = F))
   }
   
-  exclude <- c("/Users/abigaillewis/Desktop/SERC/GENX2_flux_data/Raw_data/dropbox_downloads/GENX2_Instrument_FLUX_COMB.dat.1.backup",
-  "/Users/abigaillewis/Desktop/SERC/GENX2_flux_data/Raw_data/dropbox_downloads/GENX2_Instrument_FLUX_COMB.dat.backup") 
+  exclude <- c("GENX2_Instrument_FLUX_COMB.dat.1.backup",
+               "GENX2_Instrument_FLUX_COMB.dat.backup") 
   #Insert file names here if they should be excluded
   #Currently excluding last year's data
   files <- files[!grepl(paste0(exclude, collapse = "|"), files)]
