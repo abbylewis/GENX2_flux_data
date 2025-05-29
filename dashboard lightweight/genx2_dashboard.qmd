@@ -63,7 +63,7 @@ dateInput('today', 'Today',
 br()
 sliderInput('days_to_plot', 'Days of historical data to plot', 
             0, 
-            round(as.numeric(difftime(Sys.Date(), "2025-03-18", units = "days"))),
+            round(as.numeric(difftime(Sys.Date(), "2025-05-17", units = "days"))),
             value = 5)
 br()
 checkboxGroupInput('gases', 'Gases to plot', 
