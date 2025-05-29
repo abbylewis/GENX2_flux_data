@@ -18,7 +18,8 @@ download_new_data <- function(lgr_folder = here::here("Raw_data","dropbox_downlo
   #GENX flux vs GENX LGR in 2021
   message("Looking for new data files on dropbox")
   relevant_files <- drop_dir(path = "GENX2_Mesocosm_Data/current_data") %>%
-    filter(grepl("GENX2_Instrument_FLUX_COMB", name))
+    filter(grepl("GENX2_Instrument_FLUX_COMB", name)) %>%
+    mutate(server_modified = as.POSIXct(server_modified, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"))
   
   #Remove files that are already loaded and haven't been modified
   already_loaded <- list.files(lgr_folder)

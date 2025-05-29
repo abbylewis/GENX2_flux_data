@@ -18,13 +18,7 @@ generate_target <- function(reprocess = F){
   lgr <- download_new_data(lgr_folder = here::here("Raw_data","dropbox_downloads"))
   
   #Second- calculate fluxes for new data, generating the L0 file
-  if(reprocess){
-    L0 <- calculate_flux(start_date = "2024-01-01", 
-                         end_date = Sys.Date()+1,
-                         reprocess = reprocess)
-  } else {
-    L0 <- calculate_flux()
-  }
+  L0 <- calculate_flux(reprocess = reprocess)
   
   #Third- QAQC, generating the L1 file
   data <- qaqc(here::here("processed_data","L0.csv"))
@@ -32,4 +26,4 @@ generate_target <- function(reprocess = F){
   return(data)
 }
 
-target <- generate_target(reprocess = F)
+target <- generate_target(reprocess = T)

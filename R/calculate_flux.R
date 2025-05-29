@@ -54,8 +54,20 @@ calculate_flux <- function(start_date = NULL,
     filter(!TIMESTAMP == "TS") %>%
     mutate(TIMESTAMP = as_datetime(TIMESTAMP, tz = "EST")) %>%
     filter(!is.na(TIMESTAMP),
-           !MIU_VALVE %in% c(0,128)) %>%
+           !MIU_VALVE %in% c(0, 128, 11, 12, 23, 24)) %>%
     distinct()
+  
+  #data_small %>%
+  #  filter(as.Date(TIMESTAMP, tz = "EST") == "2025-05-28",
+  #         hour(TIMESTAMP) > 18,
+  #         Flux_Status == 3) %>%
+  #  mutate(CH4d_ppm = as.numeric(CH4d_ppm),
+  #         CO2d_ppm = as.numeric(CO2d_ppm),
+  #         N2Od_ppb = as.numeric(N2Od_ppb),
+  #         Manifold_Timer = as.numeric(Manifold_Timer),
+  #         MIU_VALVE = as.numeric(MIU_VALVE)) %>%
+  #  ggplot(aes(x= TIMESTAMP, y=CO2d_ppm, color=Flux_Status)) +
+  #  geom_point(size = 0.5)
   
   #Format data
   data_numeric <- data_small %>%
@@ -109,16 +121,14 @@ calculate_flux <- function(start_date = NULL,
                           change_s[which.min(CH4d_ppm)],
                           NA),)
   
-  #grouped_data %>%
+  #filtered_data %>%
   #  ungroup() %>%
-  #  filter(as.Date(TIMESTAMP)==Sys.Date()-1,
-  #         hour(TIMESTAMP) > 21,
-  #         hour(TIMESTAMP) < 24) %>%
+  #  filter(as.Date(TIMESTAMP, tz = "EST")==Sys.Date(),
+  #         hour(TIMESTAMP) > 15,
+  #         Flux_Status ==3) %>%
   #  ggplot(aes(x = TIMESTAMP, y= CO2d_ppm, color = Flux_Status))+
-  #  #geom_point(aes(group = group))+
-  #  geom_smooth(aes(group= paste0(group, Flux_Status)))
-  #
-  #unique(grouped_data$MIU_VALVE)
+  #  geom_point(aes(group = group))
+  #  #geom_smooth(aes(group= paste0(group, Flux_Status)))
   
   #Save flags for data that will be removed in the next step
   flags <- grouped_data %>%
@@ -143,15 +153,15 @@ calculate_flux <- function(start_date = NULL,
   
   #Filter
   start_cutoff <- 200 #Buffer of time after flux window
-  end_cutoff <- 540
+  end_cutoff <- 600
   filtered_data <- grouped_data %>%
     group_by(group, MIU_VALVE)  %>%
-    mutate(n = sum(Manifold_Timer >= start_cutoff &
-                     Manifold_Timer <= end_cutoff),
+    mutate(n = sum(Manifold_Timer > start_cutoff,
+                   Manifold_Timer < end_cutoff),
            cutoff = NA) %>%
     #Remove earlier measurements
-    filter(Manifold_Timer >= start_cutoff,
-           Manifold_Timer <= end_cutoff,
+    filter(Manifold_Timer > start_cutoff,
+           Manifold_Timer < end_cutoff,
            max(change_s) < 1000, #After ~15 min there is probably a problem
            n < 200 #probably some issue if this many measurements are taken
     ) 
