@@ -29,7 +29,7 @@ download_new_data <- function(lgr_folder = here::here("Raw_data","dropbox_downlo
   modified <- relevant_files %>%
     select(name, server_modified) %>%
     left_join(loaded_file_info, by = "name") %>%
-    filter(server_modified > mtime)
+    filter(server_modified > (mtime - hours(3))) #Add a 3-hr buffer to re-download really recent files
   relevant_files <- relevant_files %>% #Only process files that are new or have been modified on dropbox
     filter(!name %in% already_loaded | name %in% modified$name)
   

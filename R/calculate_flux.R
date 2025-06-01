@@ -57,17 +57,40 @@ calculate_flux <- function(start_date = NULL,
            !MIU_VALVE %in% c(0, 128, 11, 12, 23, 24)) %>%
     distinct()
   
-  #data_small %>%
-  #  filter(as.Date(TIMESTAMP, tz = "EST") == "2025-05-28",
-  #         hour(TIMESTAMP) > 18,
-  #         Flux_Status == 3) %>%
-  #  mutate(CH4d_ppm = as.numeric(CH4d_ppm),
-  #         CO2d_ppm = as.numeric(CO2d_ppm),
-  #         N2Od_ppb = as.numeric(N2Od_ppb),
-  #         Manifold_Timer = as.numeric(Manifold_Timer),
-  #         MIU_VALVE = as.numeric(MIU_VALVE)) %>%
-  #  ggplot(aes(x= TIMESTAMP, y=CO2d_ppm, color=Flux_Status)) +
-  #  geom_point(size = 0.5)
+  data_small %>%
+    filter(as.Date(TIMESTAMP, tz = "EST") >= "2025-05-31",
+    #       hour(TIMESTAMP) > 3,
+    #       hour(TIMESTAMP) < 15,
+    #       !Flux_Status %in% c(1,2,4)
+           ) %>%
+    mutate(CH4d_ppm = as.numeric(CH4d_ppm),
+           CO2d_ppm = as.numeric(CO2d_ppm),
+           N2Od_ppb = as.numeric(N2Od_ppb),
+           Manifold_Timer = as.numeric(Manifold_Timer),
+           MIU_VALVE = as.numeric(MIU_VALVE)) %>%
+    pivot_longer(cols = c(CH4d_ppm, CO2d_ppm, N2Od_ppb),
+                 names_to = "Variable",
+                 values_to = "Value") %>%
+    filter(Variable == "CH4d_ppm") %>%
+    ggplot(aes(x= TIMESTAMP, y=Value, color=Manifold_Timer>200)) +
+    geom_point(size = 0.5)+
+    facet_wrap(~Variable, scales = "free_y", ncol = 1)+
+    ggtitle("genx2")
+  
+  data_small %>%
+    filter(as.Date(TIMESTAMP, tz = "EST") >= "2025-05-31",
+           #       hour(TIMESTAMP) > 9,
+           #       hour(TIMESTAMP) < 15,
+           #       !Flux_Status %in% c(1,2,4)
+    ) %>%
+    mutate(CH4d_ppm = as.numeric(CH4d_ppm),
+           CO2d_ppm = as.numeric(CO2d_ppm),
+           N2Od_ppb = as.numeric(N2Od_ppb),
+           Manifold_Timer = as.numeric(Manifold_Timer),
+           MIU_VALVE = as.numeric(MIU_VALVE)) %>%
+    ggplot(aes(x= TIMESTAMP, y=CH4d_ppm, color=Manifold_Timer>200)) +
+    geom_point(size = 0.5)+
+    ggtitle("genx2")
   
   #Format data
   data_numeric <- data_small %>%
@@ -156,12 +179,10 @@ calculate_flux <- function(start_date = NULL,
   end_cutoff <- 600
   filtered_data <- grouped_data %>%
     group_by(group, MIU_VALVE)  %>%
-    mutate(n = sum(Manifold_Timer > start_cutoff,
-                   Manifold_Timer < end_cutoff),
+    mutate(n = sum(Flux_Status == 3),
            cutoff = NA) %>%
     #Remove earlier measurements
-    filter(Manifold_Timer > start_cutoff,
-           Manifold_Timer < end_cutoff,
+    filter(Flux_Status == 3,
            max(change_s) < 1000, #After ~15 min there is probably a problem
            n < 200 #probably some issue if this many measurements are taken
     ) 

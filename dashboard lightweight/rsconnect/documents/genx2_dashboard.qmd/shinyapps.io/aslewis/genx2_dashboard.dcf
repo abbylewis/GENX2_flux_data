@@ -5,7 +5,7 @@ account: aslewis
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14844605
-bundleId: 10362247
+bundleId: 10377526
 url: https://aslewis.shinyapps.io/genx2_dashboard/
 version: 1
 quarto_version: 1.5.57
