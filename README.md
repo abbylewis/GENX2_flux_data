@@ -10,4 +10,6 @@ Contact: Abby Lewis (abigail.sl.lewis@gmail.com)
 
 To run these calculations yourself, you can use `Calculate and QAQC fluxes.Rmd`, which sources helper scripts in `./R`.
 
-For fluxes that have not undergone QAQC, you can use `./processed_data/L0.csv`.
+For fluxes [hi] that have not undergone QAQC, you can use `./processed_data/L0.csv`.
+
+This is my version

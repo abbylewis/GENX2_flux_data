@@ -58,9 +58,12 @@ calculate_flux <- function(start_date = NULL,
     distinct()
   
   data_small %>%
-    filter(as.Date(TIMESTAMP, tz = "EST") >= "2025-05-31",
-    #       hour(TIMESTAMP) > 3,
-    #       hour(TIMESTAMP) < 15,
+    filter(as.Date(TIMESTAMP, tz = "EST") == "2025-06-01",
+           CH4d_ppm > 0,
+           hour(TIMESTAMP) > 12,
+           Manifold_Timer > 200,
+           N2Od_ppb > 100, 
+           hour(TIMESTAMP) < 19,
     #       !Flux_Status %in% c(1,2,4)
            ) %>%
     mutate(CH4d_ppm = as.numeric(CH4d_ppm),
@@ -71,15 +74,16 @@ calculate_flux <- function(start_date = NULL,
     pivot_longer(cols = c(CH4d_ppm, CO2d_ppm, N2Od_ppb),
                  names_to = "Variable",
                  values_to = "Value") %>%
-    filter(Variable == "CH4d_ppm") %>%
-    ggplot(aes(x= TIMESTAMP, y=Value, color=Manifold_Timer>200)) +
+    ggplot(aes(x= TIMESTAMP, y=Value, color=(MIU_VALVE == 30))) +
     geom_point(size = 0.5)+
     facet_wrap(~Variable, scales = "free_y", ncol = 1)+
     ggtitle("genx2")
   
   data_small %>%
-    filter(as.Date(TIMESTAMP, tz = "EST") >= "2025-05-31",
-           #       hour(TIMESTAMP) > 9,
+    filter(as.Date(TIMESTAMP, tz = "EST") >= "2025-05-30",
+           CH4d_ppm > 0,
+          #hour(TIMESTAMP) > 9,
+           Manifold_Timer>200
            #       hour(TIMESTAMP) < 15,
            #       !Flux_Status %in% c(1,2,4)
     ) %>%
@@ -87,9 +91,14 @@ calculate_flux <- function(start_date = NULL,
            CO2d_ppm = as.numeric(CO2d_ppm),
            N2Od_ppb = as.numeric(N2Od_ppb),
            Manifold_Timer = as.numeric(Manifold_Timer),
-           MIU_VALVE = as.numeric(MIU_VALVE)) %>%
-    ggplot(aes(x= TIMESTAMP, y=CH4d_ppm, color=Manifold_Timer>200)) +
+           MIU_VALVE = as.numeric(MIU_VALVE),
+           day = as.Date(TIMESTAMP, tz = "EST"),
+           time = as.numeric(TIMESTAMP - as_datetime(paste0(day, " 00:00:00"))) - 5) %>%
+    filter(#time > 0, time < 20, 
+           N2Od_ppb>0) %>%
+    ggplot(aes(x= time, y=N2Od_ppb, color=MIU_VALVE == 40))+
     geom_point(size = 0.5)+
+    facet_wrap(~day, ncol = 1)+
     ggtitle("genx2")
   
   #Format data
